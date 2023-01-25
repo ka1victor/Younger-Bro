@@ -8,7 +8,8 @@ import numpy as np
 #pyautogui.hotkey('alt','tab')
 #time.sleep(2)
 
-attack()
+pyautogui.screenshot('cimento.png',region=(1057,612,25,15))
+#attack()
 print('done')
 
 # length = 21 #what is the line size?

@@ -10,5 +10,3 @@ def mouse_position(wait):
 pyautogui.hotkey('alt','tab')
 
 print(mouse_position(5))
-
-#(675,650,125,40)

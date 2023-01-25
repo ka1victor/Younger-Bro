@@ -1,18 +1,12 @@
 import pyautogui
 import time
-import random
+import random # only to make timing to seem more human like and avoid ban
 import cv2
 import pytesseract
 import numpy as np
 
-from PIL import Image
-
-hp_img_file = open('hp.png', 'rb')
-hp_img = Image.open(hp_img_file)
-
 def identify_status(): #'walkaround' or 'battle'
-    global hp_img
-    found = pyautogui.locateOnScreen(hp_img, confidence=0.8) # @kaykyb's suggestion: load it once into a buffer, and then locate the buffer on the future times the function is called. That could make the function faster, and decrease the time spent between action
+    found = pyautogui.locateOnScreen('hp.png',region=(1055,610,30,20)) # @kaykyb's suggestion: load it once into a buffer, and then locate the buffer on the future times the function is called. That could make the function faster, and decrease the time spent between action
     if found == None: #check what is the actual error message
         return 'walkaround'
     else:
@@ -20,23 +14,25 @@ def identify_status(): #'walkaround' or 'battle'
 
 def go_right(length):
     global position
-    pyautogui.keyDown('down')
+    pyautogui.keyDown('right')
 
-    #step_time=0.01
-    while identify_status() == 'walkaround' and position < length: #this loop's processing time (IN THIS VERSION) means a lot of step_time
-        position = position + 7
+    step_time=0.1 #just a guess
+    while identify_status() == 'walkaround' and position < length:
+        #time.sleep(step_time) #identify status takes around the time of two steps to run
+        position = position + 2
 
-    pyautogui.keyUp('down') #
+    pyautogui.keyUp('right') #
 
 def go_left():
     global position
-    pyautogui.keyDown('up')
+    pyautogui.keyDown('left')
 
-    #step_time=0.01
-    while identify_status() == 'walkaround' and position > 1: #this loop's processing time (IN THIS VERSION) means a lot of step_time
-        position = position - 7
+    step_time=0.1 #just a guess
+    while identify_status() == 'walkaround' and position > 1:
+        #time.sleep(step_time)
+        position = position - 2
 
-    pyautogui.keyUp('up') #
+    pyautogui.keyUp('left') #
 
 def identify_poke():
     """info_bar must be a tuple the information (left, top, width, heith) of your the opposing poke showing up above your HP bar, from its name to its level."""
@@ -64,40 +60,47 @@ def call_me():
     #Open Whatsapp and call me with Pyautogui
     return 0
 
-size = 9 #what is the line size?
-position = int(input("What position are you in?\n")) #where in the line did you start, counting from 1 to size?
-pyautogui.hotkey('alt','tab')
+length = int(input("What is the line size?"))
+position = int(input("What position are you in counting from left to right?\n"))
+moves = int(input("How many moves (battles or walks) do you want the YoungerBro to make?"))
 
-for i in range(10): #quantas batalhas quer fazer    
-    status = identify_status()
+pyautogui.hotkey('alt','tab')
+for i in range(moves): #quantas batalhas quer fazer    
+    
     # WALK
-    if status == 'walkaround':
-        if position < size/2:
+    if identify_status() == 'walkaround':
+        size=length/2
+        if position < size:
             go_right(size) #size informs our function about its borders (in right)
         else:
             go_left() #size, here, is not needed, because the border is the position=1
 
     # BATTLE
-    if status == 'battle':
+    if identify_status() == 'battle':
+        time.sleep(0.5+random.random())
         wild = identify_poke()
         pokemon = wild[0]
         is_shiny_or_elite = wild[1]
 
-        kill_list = ['Weedle','Caterpie','Kakuna','Metapod'] #could be automated by doing a /help, reading, and classifying each of the possible pokes by appearing
-        catch_list = [] 
+        # could be automated by doing a /pokemon, "reading" the species from that area, and classifying by rarity
+        # we could also take this lists as user input before the loop
+        kill_list = ['Weedle','Caterpie','Kakuna','Metapod','Butterfree']
+        catch_list = []
+        # meanwhile, since we're probably using large moves, and the bot is still only intended for people who can read this, this looks like a better approach
 
-        if (pokemon in catch_list) or is_shiny_or_elite:
+        if (pokemon in catch_list) or is_shiny_or_elite: # putting this first to be safe in case we put a poke into kill_list and catch_list
             call_me()
             #catching could be automated, but must be used wisely
         elif pokemon in kill_list:
             attack()
-            time.sleep(8)
+            time.sleep(9)
         else:
             print("Your poke is not on any list!")
             call_me()
         status = identify_status()
     
     # IMPROVEMENTS
+    # implement call_me()
     # call_me() if someone sends you a trade/battle request
     # play and stop
     # pause and resume
